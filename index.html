@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin Control System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b1019;--bar:rgba(11,16,25,.85);--card:#141a28;--card2:#10151f;--line:rgba(148,163,184,.17);
+  --text:#f1f5f9;--muted:#8b97ab;--cyan:#22d3ee;--chip:rgba(34,211,238,.13);
+  --price:#19d3a2;--ok:#19d3a2;--warn:#fbbf24;--bad:#fb7185;--dead:#94a3b8;
+  --btn:linear-gradient(100deg,#4cc9f5 0%,#2a7fd6 55%,#12408f 100%);
+  --glow:0 0 0 1px rgba(34,211,238,.06),0 0 32px rgba(34,211,238,.07),0 14px 40px rgba(0,0,0,.45);
+  --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+[data-theme="light"]{
+  --bg:#eef3f9;--bar:rgba(238,243,249,.88);--card:#fff;--card2:#f4f7fb;--line:rgba(15,23,42,.12);
+  --text:#0f172a;--muted:#5b6b82;--cyan:#0891b2;--chip:rgba(8,145,178,.12);--price:#0a9a77;
+  --glow:0 10px 30px rgba(15,23,42,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:
+  radial-gradient(700px 380px at 85% -5%,rgba(34,211,238,.10),transparent 60%),
+  radial-gradient(600px 400px at 0% 0%,rgba(37,99,235,.10),transparent 60%),var(--bg);
+  background-attachment:fixed;color:var(--text);min-height:100vh;transition:background .3s,color .3s}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+
+/* Top bar */
+.bar{position:sticky;top:0;z-index:20;background:var(--bar);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.bar-in{max-width:1400px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:1.15rem;letter-spacing:-.01em;margin-right:auto}
+.logo{width:46px;height:40px;object-fit:contain;display:none}
+.logo-fb{font-weight:800;font-size:1.5rem;font-style:italic;background:linear-gradient(135deg,#bfe9ff,#2a7fd6);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 8px rgba(42,127,214,.6))}
+.ib{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer;display:grid;place-items:center;transition:.2s}
+.ib:hover{border-color:var(--cyan);box-shadow:0 0 16px rgba(34,211,238,.3)}
+.ib svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+#cfgBar{border-top:1px solid var(--line);display:none}
+#cfgBar.open{display:block}
+.cfg{max-width:1400px;margin:0 auto;padding:12px 22px 16px;position:relative}
+.cfg .dot{position:absolute;left:38px;top:30px;width:9px;height:9px;border-radius:50%;background:var(--dead);transition:.3s}
+.dot.on{background:var(--ok);box-shadow:0 0 12px var(--ok)}
+.dot.err{background:var(--bad);box-shadow:0 0 12px var(--bad)}
+.cfg input{padding-left:40px}
+
+.wrap{max-width:1400px;margin:0 auto;padding:34px 22px 70px}
+h1{font-size:clamp(2rem,6vw,2.8rem);font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.sub{color:var(--muted);font-size:1.05rem;margin:10px 0 28px}
+
+.grid{display:grid;grid-template-columns:minmax(300px,390px) 1fr;gap:24px;align-items:start}
+.side{display:flex;flex-direction:column;gap:24px}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:24px;box-shadow:var(--glow);position:relative;overflow:hidden}
+.card h2{font-size:1.05rem;font-weight:800;display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.card h2 i{font-style:normal;width:32px;height:32px;display:grid;place-items:center;border-radius:10px;background:var(--chip);border:1px solid rgba(34,211,238,.25)}
+.accent{border-left:3px solid rgba(34,211,238,.45)}
+
+/* Preview banner */
+.pv{position:relative;aspect-ratio:16/9;border-radius:18px;overflow:hidden;border:1px solid var(--line);margin-bottom:16px;
+  background:linear-gradient(135deg,#0d1424,#17233f 60%,#0d1424)}
+.pv img{width:100%;height:100%;object-fit:cover;display:none}
+.pv .ph{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:.82rem}
+.pill{position:absolute;left:14px;top:14px;font-size:.78rem;font-weight:600;color:var(--cyan);background:rgba(10,18,30,.78);border:1px solid rgba(34,211,238,.2);padding:6px 14px;border-radius:999px;backdrop-filter:blur(6px)}
+
+/* Forms */
+label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin:14px 0 7px}
+.card>label:first-of-type,.card>h2+label{margin-top:0}
+input,textarea,select{width:100%;font:inherit;font-size:.95rem;color:var(--text);background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:13px 16px;outline:none;transition:.2s}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
+input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.14)}
+textarea{resize:vertical;min-height:100px}
+.row{display:flex;gap:8px}.row input{flex:1;min-width:0}
+.btn{font:inherit;font-weight:600;font-size:.95rem;color:#fff;cursor:pointer;border:0;border-radius:14px;background:var(--btn);padding:14px 20px;width:100%;margin-top:18px;
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 6px 22px rgba(42,127,214,.35);transition:transform .18s,box-shadow .18s,filter .18s}
+.btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn:hover{transform:translateY(-2px) scale(1.015);box-shadow:0 10px 30px rgba(76,201,245,.45);filter:brightness(1.08)}
+.btn:active{transform:scale(.98)}.btn:disabled{opacity:.55;cursor:wait;transform:none}
+.btn.sm{width:auto;margin:0;padding:10px 16px;font-size:.82rem;border-radius:12px}
+.btn.gen{width:auto;margin:0;padding:0 16px;font-size:.82rem;flex-shrink:0}
+
+/* Toolbar */
+.head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.head h2{margin:0}
+.search{position:relative;margin-bottom:14px}
+.search svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round}
+.search input{padding-left:44px;border-radius:16px}
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.chip{font:inherit;font-size:.9rem;color:var(--muted);background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:9px 20px;cursor:pointer;transition:.2s}
+.chip:hover{color:var(--text);border-color:rgba(34,211,238,.4)}
+.chip.on{color:var(--cyan);background:var(--chip);border-color:var(--cyan);box-shadow:0 0 16px rgba(34,211,238,.2)}
+
+/* Table */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:18px;background:var(--card2)}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th{text-align:left;font-size:.78rem;font-weight:600;color:var(--muted);padding:14px 16px;white-space:nowrap;border-bottom:1px solid var(--line)}
+td{padding:14px 16px;font-size:.9rem;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr{transition:background .15s}tbody tr:hover{background:rgba(34,211,238,.05)}tbody tr:last-child td{border-bottom:0}
+.uname{font-weight:700;display:flex;align-items:center;gap:7px}
+.vb{width:18px;height:18px;flex-shrink:0;filter:drop-shadow(0 0 5px rgba(76,150,255,.8))}
+.key{font-family:var(--mono);font-weight:500;font-size:.82rem;color:var(--price);background:rgba(25,211,162,.09);padding:5px 10px;border-radius:8px;cursor:pointer;border:1px dashed rgba(25,211,162,.3)}
+.key:hover{background:rgba(25,211,162,.18)}
+.badge{display:inline-block;font-size:.72rem;font-weight:700;padding:5px 12px;border-radius:999px;border:1px solid;letter-spacing:.03em}
+.b-ACTIVE{color:var(--ok);border-color:rgba(25,211,162,.4);background:rgba(25,211,162,.1)}
+.b-BANNED{color:var(--warn);border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.1)}
+.b-BLACKLIST{color:var(--bad);border-color:rgba(251,113,133,.4);background:rgba(251,113,133,.1)}
+.b-DELETED{color:var(--dead);border-color:rgba(148,163,184,.35);background:rgba(148,163,184,.1)}
+.tgt{color:var(--muted);font-size:.82rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.act{display:flex;gap:8px;align-items:center}
+.act select{width:auto;padding:9px 12px;font-size:.82rem;border-radius:12px;cursor:pointer}
+.act select option{background:var(--card)}
+.count{font-size:.8rem;color:var(--muted);font-weight:600}
+.empty{text-align:center;color:var(--muted);padding:36px 14px!important}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(34,211,238,.25);border-top-color:var(--cyan);border-radius:50%;animation:rot .7s linear infinite;vertical-align:-2px;margin-right:8px}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* Mobile: baris tabel jadi kartu */
+@media(max-width:700px){
+  .wrap{padding:26px 16px 60px}.card{padding:20px;border-radius:24px}
+  .tw{border:0;background:none;overflow:visible}
+  table,tbody,tr,td{display:block;min-width:0;width:100%}
+  thead{display:none}
+  tbody tr{background:var(--card2);border:1px solid var(--line);border-left:3px solid rgba(34,211,238,.45);border-radius:20px;padding:10px 4px;margin-bottom:14px}
+  td{border:0;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 16px}
+  td::before{content:attr(data-l);color:var(--muted);font-size:.78rem;font-weight:600;flex-shrink:0}
+  td.empty{display:block}td.empty::before{content:none}
+  .tgt{max-width:60%}
+}
+
+/* Fitur key */
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.od{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--dead);margin-right:7px}
+.od.on{background:var(--ok);box-shadow:0 0 10px var(--ok);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.4}}
+.onl{font-size:.78rem;font-weight:600;color:var(--muted);margin-top:8px;display:flex;align-items:center}
+.onl.on{color:var(--ok)}
+.b-PAUSED{color:#a78bfa;border-color:rgba(167,139,250,.4);background:rgba(167,139,250,.1);margin-left:6px}
+.dur{font-size:.82rem;font-weight:600}.dur.x{color:var(--bad)}.dur.w{color:var(--muted)}
+.act{flex-wrap:wrap;max-width:340px}
+.btn.sm.g{background:var(--card);color:var(--text);border:1px solid var(--line);box-shadow:none;padding:8px 12px;font-size:.78rem}
+.btn.sm.g:hover{border-color:var(--cyan);box-shadow:0 0 14px rgba(34,211,238,.25);filter:none}
+.btn.sm.g.d{color:var(--bad)}.btn.sm.g.d:hover{border-color:var(--bad);box-shadow:0 0 14px rgba(251,113,133,.25)}
+@media(max-width:700px){td[data-l="Aksi"]{flex-direction:column;align-items:flex-start}.act{max-width:none}}
+
+/* Antrian dadu */
+.dice{display:flex;flex-wrap:wrap;gap:5px;max-width:260px}
+.dice .d{min-width:28px;height:28px;padding:0 6px;display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:.82rem;border-radius:8px;color:var(--text);background:var(--card);border:1px solid var(--line)}
+.dice .d.done{opacity:.35;text-decoration:line-through}
+.dice .d.now{color:var(--cyan);border-color:var(--cyan);background:var(--chip);box-shadow:0 0 12px rgba(34,211,238,.45)}
+.qm{font-size:.74rem;color:var(--muted);margin-top:7px}
+.q0{display:inline-grid;place-items:center;min-width:28px;height:28px;padding:0 8px;font-family:var(--mono);font-weight:700;font-size:.82rem;border-radius:8px;color:var(--muted);border:1px dashed var(--line)}
+@media(max-width:700px){td[data-l="Set Dadu"]{align-items:flex-start}.dice{justify-content:flex-end}td[data-l="Set Dadu"]>div:first-child{text-align:right}}
+
+.hint{color:var(--muted);font-size:.8rem;margin-top:9px;line-height:1.5}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.stat{background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.stat small{display:block;color:var(--muted);font-size:.74rem;font-weight:600}
+.stat b{display:block;font-size:1.35rem;margin:4px 0 2px;font-family:var(--mono)}
+
+/* Toast */
+#toasts{position:fixed;right:16px;bottom:16px;left:16px;z-index:50;display:flex;flex-direction:column;align-items:flex-end;gap:10px;pointer-events:none}
+.toast{background:var(--card);color:var(--text);border:1px solid var(--line);border-left:3px solid var(--cyan);padding:13px 18px;border-radius:14px;font-size:.88rem;max-width:340px;box-shadow:0 10px 34px rgba(0,0,0,.45);animation:tin .25s ease-out}
+.toast.err{border-left-color:var(--bad)}
+@keyframes tin{from{opacity:0;transform:translateY(12px)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="bar-in">
+    <div class="brand">
+      <img class="logo" id="hLogo" alt="Logo">
+      <span class="logo-fb" id="hFb">Mi</span>
+      <span id="siteTitle">Admin Control System</span>
+    </div>
+    <button class="ib" id="btnTheme2" title="Ganti tema" aria-label="Ganti tema">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+    <button class="ib" id="btnMenu" title="Konfigurasi server" aria-label="Konfigurasi server">
+      <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+  </div>
+  <div id="cfgBar">
+    <div class="cfg">
+      <span class="dot" id="dot"></span>
+      <input type="url" id="gasUrl" placeholder="URL Web App Google Script (https://script.google.com/macros/s/AKfycbwS73ooXtnfY_2BFeeMSGIjz-6TCuVvuNdNopn2upuNEyxqsfRKmACrP_Yuf9us5_Mx3A/exec)" autocomplete="off" spellcheck="false">
+      <input type="password" id="admTok" placeholder="MANJIIVIP" autocomplete="off" spellcheck="false" style="margin-top:10px">
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <h1>Panel Admin</h1>
+  <p class="sub">Kelola akses, tampilan, dan pesan untuk semua user.</p>
+
+  <section class="card" style="margin-bottom:24px">
+    <div class="head"><h2><i>📊</i>Status Website</h2><span class="count" id="stTime"></span></div>
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <div class="grid">
+    <aside class="side">
+
+      <section class="card">
+        <h2><i>🎨</i>Setup UI Web User</h2>
+        <div class="pv" id="pv">
+          <img id="pvImg" alt="">
+          <div class="ph" id="pvPh">Preview banner 16:9</div>
+          <span class="pill">Preview</span>
+        </div>
+        <label for="siteName">Nama Website</label>
+        <input id="siteName" placeholder="Nama website user, mis. MANJII iOS" autocomplete="off">
+        <label for="logoUrl">URL Logo</label>
+        <input id="logoUrl" type="url" placeholder="https://.../logo.png">
+        <label for="bannerUrl">URL Banner Animasi (16:9)</label>
+        <input id="bannerUrl" type="url" placeholder="https://.../banner.gif">
+        <button class="btn" id="btnSet" onclick="updateSettings()">Simpan Tema UI</button>
+      </section>
+
+      <section class="card">
+        <h2><i>🔑</i>Buat Akses User</h2>
+        <label for="newUser">Username</label>
+        <input id="newUser" placeholder="Username" autocomplete="off">
+        <label for="newPass">Password</label>
+        <input id="newPass" placeholder="Password" autocomplete="off">
+        <label for="newKey">License Key (prefix dan isi bisa diketik sendiri)</label>
+        <div class="row">
+          <input id="keyPrefix" value="VIP" maxlength="8" title="Prefix key" style="max-width:84px;text-align:center">
+          <input id="newKey" placeholder="Ketik key sendiri atau klik Acak" autocomplete="off">
+          <button class="btn gen" type="button" onclick="genKey()" title="Generate key acak">🎲 Acak</button>
+        </div>
+        <label>Durasi Key</label>
+        <div class="row2">
+          <input id="durVal" type="number" min="1" value="30" aria-label="Jumlah durasi">
+          <select id="durUnit" aria-label="Satuan durasi"><option value="hour">Jam</option><option value="day" selected>Hari</option><option value="month">Bulan (30 hari)</option><option value="lifetime">Permanen</option></select>
+        </div>
+        <label for="durStart">Mulai hitung durasi</label>
+        <select id="durStart"><option value="first_login">Saat login pertama</option><option value="now">Sekarang (saat dibuat)</option></select>
+        <button class="btn" id="btnUser" onclick="createUser()">Daftarkan User</button>
+      </section>
+
+      <section class="card">
+        <h2><i>📡</i>Direct Announcement</h2>
+        <label for="annUser">Target Username</label>
+        <input id="annUser" placeholder="Username penerima" autocomplete="off">
+        <label for="annMsg">Isi Pesan</label>
+        <textarea id="annMsg" placeholder="Tulis pesan untuk user ini..."></textarea>
+        <button class="btn" id="btnAnn" onclick="sendAnn()">Kirim Pesan</button>
+      </section>
+
+      <section class="card">
+        <h2><i>🎯</i>Set Angka Dadu</h2>
+        <label for="dUser">Target Username</label>
+        <input id="dUser" placeholder="Username user" autocomplete="off">
+        <label for="dAng">Target total angka</label>
+        <input id="dAng" type="number" inputmode="numeric" placeholder="25">
+        <label for="dJum">Jumlah dadu</label>
+        <input id="dJum" type="number" inputmode="numeric" value="9">
+        <p class="hint">Total harus antara jumlah dadu dan jumlah dadu x 6. Isi 0 dan 0 untuk menghapus.</p>
+        <button class="btn" id="btnDadu" onclick="adminSetDadu()">Kunci Angka Dadu</button>
+      </section>
+
+      <section class="card">
+        <h2><i>📢</i>Broadcast All</h2>
+        <label for="bcMsg">Pesan siaran</label>
+        <textarea id="bcMsg" placeholder="Pesan ini tampil ke semua user..."></textarea>
+        <button class="btn" id="btnBc" onclick="broadcastAll()">Kirim ke Semua User</button>
+      </section>
+
+    </aside>
+
+    <main class="card">
+      <div class="head">
+        <h2><i>🗄️</i>Database User Terdaftar</h2>
+        <div style="display:flex;align-items:center;gap:14px">
+          <span class="count" id="count"></span>
+          <button class="btn sm" onclick="loadData()">🔄 Refresh Data</button>
+        </div>
+      </div>
+      <div class="search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="q" placeholder="Cari username atau key..." autocomplete="off">
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="tw">
+        <table>
+          <thead><tr><th>User</th><th>Key License</th><th>Status</th><th>Durasi</th><th>Set Dadu</th><th>Aksi</th></tr></thead>
+          <tbody id="tbody"><tr><td colspan="6" class="empty">Buka menu (☰) untuk mengisi URL Web App, lalu klik Refresh Data.</td></tr></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+<div id="toasts"></div>
+
+<script>
+const STATUSES = ['ACTIVE','BANNED','BLACKLIST','DELETED'];
+const $ = id => document.getElementById(id);
+const urlInput = $('gasUrl');
+let ALL = [], FILTER = 'Semua';
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const isTrue = v => v === true || String(v).toUpperCase() === 'TRUE' || v === 1 || v === '1';
+const isHttp = u => /^https?:\/\//i.test(u);
+
+function toast(msg, isErr){
+  const t = document.createElement('div');
+  t.className = 'toast' + (isErr ? ' err' : '');
+  t.textContent = msg; $('toasts').appendChild(t);
+  setTimeout(() => t.remove(), 3600);
+}
+function setDot(s){ $('dot').className = 'dot ' + (s || ''); }
+function busy(btn, on, label){
+  if(on){ btn.dataset.l = btn.textContent; btn.textContent = label || 'Memproses...'; btn.disabled = true; }
+  else { btn.textContent = btn.dataset.l || btn.textContent; btn.disabled = false; }
+}
+
+/* ---------- Tema & menu ---------- */
+try{ const th = localStorage.getItem('GAS_ADMIN_THEME'); if(th) document.documentElement.dataset.theme = th; }catch(e){}
+$('btnTheme2').onclick = () => {
+  const d = document.documentElement, n = d.dataset.theme === 'dark' ? 'light' : 'dark';
+  d.dataset.theme = n; try{ localStorage.setItem('GAS_ADMIN_THEME', n); }catch(e){}
+};
+$('btnMenu').onclick = () => { $('cfgBar').classList.toggle('open'); urlInput.focus(); };
+
+/* ---------- Konfigurasi URL ---------- */
+try{ urlInput.value = localStorage.getItem('GAS_ADMIN_URL') || ''; $('admTok').value = localStorage.getItem('GAS_ADMIN_TOKEN') || ''; }catch(e){}
+$('admTok').addEventListener('input', () => { try{ localStorage.setItem('GAS_ADMIN_TOKEN', $('admTok').value.trim()); }catch(e){} });
+$('admTok').addEventListener('change', () => { if(urlInput.value.trim()) loadData(); });
+if(!urlInput.value || !$('admTok').value) $('cfgBar').classList.add('open');
+urlInput.addEventListener('input', () => { try{ localStorage.setItem('GAS_ADMIN_URL', urlInput.value.trim()); }catch(e){} setDot(''); });
+urlInput.addEventListener('change', () => { if(urlInput.value.trim()) loadData(); });
+
+/* ---------- Helper request (text/plain agar lolos CORS GAS) ---------- */
+function req(action, payload, callback){
+  const url = urlInput.value.trim();
+  if(!url){ toast('Isi URL Web App Google Script dulu.', true); $('cfgBar').classList.add('open'); urlInput.focus(); return; }
+  const t0 = performance.now();
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action, adminToken: $('admTok').value.trim(), ...(payload || {}) }),
+    redirect: 'follow'
+  })
+  .then(r => r.json())
+  .then(res => { SRV = { on: true, ms: Math.round(performance.now() - t0) }; setDot('on'); if(res.code === 'auth') toast(res.message || 'Token admin salah.', true); updSrv(); callback && callback(res); })
+  .catch(err => { SRV = { on: false, ms: 0 }; updSrv(); setDot('err'); toast('Gagal terhubung: ' + err.message, true); callback && callback({ status:'error', message: err.message }); });
+}
+
+/* ---------- Preview logo & banner ---------- */
+function setImg(img, url, extra){
+  if(isHttp(url)){ img.src = url; img.style.display = 'block'; if(extra) extra(true); }
+  else { img.removeAttribute('src'); img.style.display = 'none'; if(extra) extra(false); }
+}
+function updatePreview(){
+  const n = $('siteName').value.trim(); $('siteTitle').textContent = n || 'Admin Control System'; document.title = n ? n + ' - Admin' : 'Admin Control System';
+  setImg($('hLogo'), $('logoUrl').value.trim(), on => { $('hFb').style.display = on ? 'none' : ''; });
+  setImg($('pvImg'), $('bannerUrl').value.trim(), on => { $('pvPh').style.display = on ? 'none' : ''; });
+}
+$('hLogo').onerror = () => { $('hLogo').style.display = 'none'; $('hFb').style.display = ''; };
+['logoUrl','bannerUrl','siteName'].forEach(i => $(i).addEventListener('input', updatePreview));
+
+/* ---------- Muat & render ---------- */
+function loadData(silent){
+  if(!silent) $('tbody').innerHTML = '<tr><td colspan="6" class="empty"><span class="spin"></span>Memuat data...</td></tr>';
+  req('admin_get_all', {}, res => {
+    if(res.status !== 'success'){
+      $('tbody').innerHTML = '<tr><td colspan="6" class="empty">Gagal memuat data. ' + esc(res.message || '') + '</td></tr>'; return;
+    }
+    ALL = res.users || [];
+    (res.settings || []).forEach(s => {
+      if(s[0] === 'LogoURL') $('logoUrl').value = s[1] || '';
+      if(s[0] === 'BannerURL') $('bannerUrl').value = s[1] || '';
+      if(s[0] === 'SiteName') $('siteName').value = s[1] || '';
+    });
+    updatePreview(); render(); renderStats();
+  });
+}
+
+const ONLINE_MS = 120000; // online jika heartbeat < 2 menit
+const num = v => { if(v === '' || v == null) return 0; const n = Number(v); if(!isNaN(n)) return n; const d = Date.parse(v); return isNaN(d) ? 0 : d; };
+const isOnline = u => { const t = num(u[11]); return t > 0 && Date.now() - t < ONLINE_MS; };
+function fmtDur(ms){ const m = Math.floor(ms/60000), h = Math.floor(m/60), d = Math.floor(h/24);
+  return d >= 1 ? d + ' hari ' + (h % 24) + ' jam' : h >= 1 ? h + ' jam ' + (m % 60) + ' mnt' : Math.max(m,1) + ' menit'; }
+function durText(u){
+  const exp = num(u[8]), dm = num(u[9]);
+  if(exp) return exp > Date.now() ? ['Sisa ' + fmtDur(exp - Date.now()), ''] : ['Kedaluwarsa', 'x'];
+  if(dm) return ['Mulai saat login (' + fmtDur(dm) + ')', 'w'];
+  return ['Permanen', 'w'];
+}
+/* Set dadu: kolom 6 = target angka (0 = tidak ada), kolom 12 = jumlah dadu */
+function diceHtml(u){
+  const a = num(u[6]), j = num(u[12]);
+  if(!(a > 0)) return '<span class="q0" title="Belum ada angka dadu di-set">0</span>';
+  return '<div class="dice"><span class="d now">' + a + '</span></div><div class="qm">' + (j > 0 ? j + ' dadu' : '-') + '</div>';
+}
+/* Status website */
+let SRV = { on: false, ms: null };
+function updSrv(){
+  const el = $('stSrv'); if(!el) return;
+  el.innerHTML = '<small>Server</small><b>' + (SRV.on ? '🟢 Online' : SRV.ms === null ? '...' : '🔴 Offline') + '</b>' + (SRV.on ? '<small>' + SRV.ms + ' ms</small>' : '');
+}
+function renderStats(){
+  const c = f => ALL.filter(u => match(u, f)).length;
+  const exp = ALL.filter(u => { const t = num(u[8]); return t > 0 && t < Date.now(); }).length;
+  const tiles = [['Total User / Key', ALL.length], ['Online', c('Online')], ['Aktif', c('ACTIVE')], ['Banned', c('BANNED')], ['Blacklist', c('BLACKLIST')], ['Paused', c('Paused')], ['Kedaluwarsa', exp]];
+  $('stats').innerHTML = '<div class="stat" id="stSrv"></div>' + tiles.map(t => '<div class="stat"><small>' + t[0] + '</small><b>' + t[1] + '</b></div>').join('');
+  updSrv(); $('stTime').textContent = 'Diperbarui ' + new Date().toLocaleTimeString('id-ID');
+}
+function match(u, f){
+  if(f === 'Semua') return true;
+  if(f === 'Online') return isOnline(u);
+  if(f === 'Paused') return isTrue(u[10]);
+  return String(u[3]).toUpperCase() === f;
+}
+function renderChips(){
+  $('chips').innerHTML = ['Semua','Online','Paused',...STATUSES].map(f =>
+    `<button class="chip${f === FILTER ? ' on' : ''}" data-f="${f}">${f}${f === 'Semua' ? '' : ' ' + ALL.filter(u => match(u, f)).length}</button>`).join('');
+}
+
+function render(){
+  renderChips();
+  const q = $('q').value.trim().toLowerCase();
+  const list = ALL.filter(u => match(u, FILTER) && (!q || String(u[0]).toLowerCase().includes(q) || String(u[2]).toLowerCase().includes(q)));
+  $('count').textContent = list.length + ' user';
+  if(!list.length){
+    $('tbody').innerHTML = '<tr><td colspan="6" class="empty">' + (ALL.length ? 'Tidak ada user yang cocok.' : 'Belum ada user. Daftarkan user pertama dari panel kiri.') + '</td></tr>'; return;
+  }
+  const check = '<svg class="vb" viewBox="0 0 24 24" aria-label="Terverifikasi"><path fill="#4c96ff" d="M12 1.8l2.6 1.9 3.2-.1 1 3 2.6 1.9-1 3 1 3-2.6 1.9-1 3-3.2-.1L12 22.2l-2.6-1.9-3.2.1-1-3L2.6 15.5l1-3-1-3 2.6-1.9 1-3 3.2.1z"/><path fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M8 12.2l2.8 2.8L16.2 9.6"/></svg>';
+  $('tbody').innerHTML = list.map(u => {
+    const [user, , key, status, ver, , targets] = u;
+    const st = STATUSES.includes(String(status).toUpperCase()) ? String(status).toUpperCase() : 'ACTIVE';
+    const v = isTrue(ver), paused = isTrue(u[10]), on = isOnline(u), e = esc(user);
+    const [dt, dc] = durText(u);
+    const opts = STATUSES.map(s => `<option value="${s}"${s === st ? ' selected' : ''}>${s}</option>`).join('');
+    return `<tr>
+      <td data-l="User"><div><span class="uname">${e}${v ? check : ''}</span><div class="onl${on ? ' on' : ''}"><i class="od${on ? ' on' : ''}"></i>${on ? 'Online' : 'Offline'}</div></div></td>
+      <td data-l="Key License"><span class="key" title="Klik untuk salin" data-copy="${esc(key)}">${esc(key)}</span></td>
+      <td data-l="Status"><div><span class="badge b-${st}">${st}</span>${paused ? '<span class="badge b-PAUSED">PAUSED</span>' : ''}</div></td>
+      <td data-l="Durasi"><span class="dur ${dc}">${esc(dt)}</span></td>
+      <td data-l="Set Dadu">${diceHtml(u)}</td>
+      <td data-l="Aksi"><div class="act">
+        <select data-user="${e}" data-act="status" aria-label="Ubah status ${e}">${opts}</select>
+        <button class="btn sm g" data-user="${e}" data-act="ban" data-v="${st === 'BANNED'}">${st === 'BANNED' ? 'Unban' : 'Ban'}</button>
+        <button class="btn sm g" data-user="${e}" data-act="pause" data-v="${paused}">${paused ? 'Unpause' : 'Pause'}</button>
+        <button class="btn sm g" data-user="${e}" data-act="reset" title="Paksa logout / lepas kunci sesi">Reset Sesi</button>
+        <button class="btn sm g" data-user="${e}" data-act="extend">+ Durasi</button>
+        <button class="btn sm" data-user="${e}" data-v="${v}" data-act="verify">${v ? 'Cabut Verify' : 'Toggle Verify'}</button>
+        <button class="btn sm g d" data-user="${e}" data-act="del">Hapus</button>
+      </div></td></tr>`;
+  }).join('');
+}
+
+$('q').addEventListener('input', render);
+$('chips').addEventListener('click', e => { const c = e.target.closest('[data-f]'); if(c){ FILTER = c.dataset.f; render(); } });
+$('tbody').addEventListener('change', e => { if(e.target.dataset.act === 'status') updateStatus(e.target.dataset.user, e.target.value); });
+$('tbody').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if(b){
+    const u = b.dataset.user, a = b.dataset.act, v = b.dataset.v === 'true';
+    if(a === 'verify') return toggleVerify(u, v);
+    if(a === 'ban') return updateStatus(u, v ? 'ACTIVE' : 'BANNED');
+    if(a === 'pause') return togglePause(u, v);
+    if(a === 'reset') return resetSession(u);
+    if(a === 'extend') return extendKey(u);
+    if(a === 'del') return deleteUser(u);
+  }
+  const k = e.target.closest('[data-copy]');
+  if(k && navigator.clipboard) navigator.clipboard.writeText(k.dataset.copy).then(() => toast('Key disalin.'));
+});
+
+/* ---------- Aksi ---------- */
+function updateSettings(){
+  const btn = $('btnSet'); busy(btn, true, 'Menyimpan...');
+  req('admin_update_settings', { siteName: $('siteName').value.trim(), logo: $('logoUrl').value.trim(), banner: $('bannerUrl').value.trim() }, res => {
+    busy(btn, false);
+    res.status === 'success' ? toast('Tema UI tersimpan.') : toast(res.message || 'Gagal menyimpan tema.', true);
+  });
+}
+function genKey(){
+  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', a = new Uint32Array(6); crypto.getRandomValues(a);
+  const pf = ($('keyPrefix').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') || 'VIP');
+  $('newKey').value = pf + '-' + Array.from(a, n => c[n % c.length]).join('');
+}
+function createUser(){
+  const username = $('newUser').value.trim(), password = $('newPass').value.trim(), key = $('newKey').value.trim();
+  if(!username || !password || !key) return toast('Username, password, dan license key wajib diisi.', true);
+  const unit = $('durUnit').value, dur = Number($('durVal').value) || 0;
+  if(unit !== 'lifetime' && dur <= 0) return toast('Durasi key harus lebih dari 0.', true);
+  const mult = { hour: 3600000, day: 86400000, month: 2592000000, lifetime: 0 };
+  const durationMs = unit === 'lifetime' ? 0 : Math.round(dur * mult[unit]);
+  const btn = $('btnUser'); busy(btn, true, 'Mendaftarkan...');
+  req('admin_create_user', { username, password, key, duration: dur, unit, durationMs, startOn: $('durStart').value }, res => {
+    busy(btn, false);
+    if(res.status === 'success'){ toast('User ' + username + ' terdaftar.'); ['newUser','newPass','newKey'].forEach(i => $(i).value = ''); loadData(); }
+    else toast(res.message || 'Gagal mendaftarkan user.', true);
+  });
+}
+function sendAnn(){
+  const target = $('annUser').value.trim(), message = $('annMsg').value.trim();
+  if(!target || !message) return toast('Target username dan isi pesan wajib diisi.', true);
+  const btn = $('btnAnn'); busy(btn, true, 'Mengirim...');
+  req('admin_send_announcement', { target, message }, res => {
+    busy(btn, false);
+    if(res.status === 'success'){ toast('Pesan terkirim ke ' + target + '.'); $('annMsg').value = ''; loadData(); }
+    else toast(res.message || 'Gagal mengirim pesan.', true);
+  });
+}
+function updateStatus(user, status){
+  req('admin_update_status', { username: user, newStatus: status }, res => {
+    res.status === 'success' ? toast(user + ' → ' + status) : toast(res.message || 'Gagal mengubah status.', true);
+    loadData();
+  });
+}
+function toggleVerify(user, currentStatus){
+  req('admin_toggle_verify', { username: user, verified: !currentStatus }, res => {
+    res.status === 'success' ? toast(!currentStatus ? user + ' kini terverifikasi.' : 'Verifikasi ' + user + ' dicabut.') : toast(res.message || 'Gagal mengubah verifikasi.', true);
+    loadData();
+  });
+}
+
+function adminSetDadu(){
+  const username = $('dUser').value.trim(), a = parseInt($('dAng').value, 10) || 0, j = parseInt($('dJum').value, 10) || 0;
+  if(!username) return toast('Target username wajib diisi.', true);
+  if(a || j){
+    if(j < 1 || j > 20) return toast('Jumlah dadu harus 1 sampai 20.', true);
+    if(a < j || a > j * 6) return toast('Total angka harus antara ' + j + ' dan ' + (j * 6) + '.', true);
+  }
+  const btn = $('btnDadu'); busy(btn, true, 'Menyimpan...');
+  req('admin_set_dadu', { username, targetAngka: a, jumlahDadu: j }, res => {
+    busy(btn, false);
+    if(res.status === 'success'){ toast(a ? 'Angka ' + a + ' (' + j + ' dadu) dikunci untuk ' + username + '.' : 'Set dadu ' + username + ' dihapus.'); loadData(true); }
+    else toast(res.message || 'Gagal menyimpan.', true);
+  });
+}
+function broadcastAll(){
+  const message = $('bcMsg').value.trim();
+  if(!message) return toast('Isi pesan siaran dulu.', true);
+  if(!confirm('Kirim pesan ini ke SEMUA user?')) return;
+  const btn = $('btnBc'); busy(btn, true, 'Mengirim...');
+  req('admin_broadcast', { message }, res => {
+    busy(btn, false);
+    if(res.status === 'success'){ toast('Broadcast terkirim ke ' + res.count + ' user.'); $('bcMsg').value = ''; }
+    else toast(res.message || 'Gagal broadcast.', true);
+  });
+}
+function simple(action, payload, okMsg){
+  req(action, payload, res => { res.status === 'success' ? toast(okMsg) : toast(res.message || 'Aksi gagal.', true); loadData(true); });
+}
+function togglePause(u, paused){ simple('admin_toggle_pause', { username: u, paused: !paused }, paused ? u + ' dilanjutkan (unpause).' : u + ' di-pause.'); }
+function resetSession(u){ if(confirm('Paksa logout ' + u + '? Key bisa dipakai login lagi.')) simple('admin_reset_session', { username: u }, 'Sesi ' + u + ' direset.'); }
+function extendKey(u){
+  const d = parseFloat(prompt('Tambah durasi untuk ' + u + ' (hari):', '30'));
+  if(!(d > 0)) return;
+  simple('admin_extend_key', { username: u, addMs: Math.round(d * 86400000) }, 'Durasi ' + u + ' +' + d + ' hari.');
+}
+function deleteUser(u){ if(confirm('Hapus permanen "' + u + '"? Tindakan ini tidak bisa dibatalkan.')) simple('admin_delete_user', { username: u }, u + ' dihapus.'); }
+
+$('durUnit').addEventListener('change', () => { $('durVal').disabled = $('durUnit').value === 'lifetime'; });
+renderChips(); renderStats();
+if(urlInput.value.trim()) loadData();
+/* Auto-refresh status online tiap 30 detik (dilewati saat admin sedang berinteraksi di tabel) */
+setInterval(() => {
+  if(urlInput.value.trim() && !document.hidden && !document.activeElement.closest('#tbody')) loadData(true);
+}, 30000);
+</script>
+</body>
+</html>
